@@ -230,6 +230,13 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         doSort(cur+1, end, array);
     }
 
+    public <T extends Comparable<T>> DoubleLinkedList<T> map(AbstractFunction<Item,T> function){
+        DoubleLinkedList<T> transformedList = new DoubleLinkedList<>();
+        for(Item item:this){
+            transformedList.add(function.apply(item));
+        }
+        return transformedList;
+    }
 
 
     // a test client
@@ -338,5 +345,10 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         System.out.println("sort implements quick sort (also toArray() method)");
         list.sort();
         System.out.println(list);
+        System.out.println();
+        System.out.println("map implementation, returns some hash codes");
+        DoubleLinkedList<String> newlist = list.map(new TestFunction());
+        System.out.println(newlist);
+
     }
 }
