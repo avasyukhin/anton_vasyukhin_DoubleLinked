@@ -6,8 +6,8 @@ package Lab_3;
 import java.io.PrintWriter;
 import java.util.*;
 
-public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterable<Item> {
-    private int N;        // number of elements on list
+public class DoubleLinkedList<E extends  Comparable<E>> implements Iterable<E> {
+    private int size;        // number of elements on list
     private Node sent;     // sentinel node
     private int modCount = 0; //modCount for comodification checks
 
@@ -19,40 +19,40 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
 
     // linked list node helper data type
     private class Node {
-        private Item item;
+        private E e;
         private Node next;
         private Node prev;
     }
 
-    public boolean isEmpty()    { return N == 0; }
-    public int size()           { return N;      }
+    public boolean isEmpty()    { return size == 0; }
+    public int size()           { return size;      }
 
-    // add the item to the list
-    public void add(Item item) {
+    // add the e to the list
+    public void add(E e) {
         Node last = sent.prev;
         Node x = new Node();
-        x.item = item;
+        x.e = e;
         x.next = sent;
         x.prev = last;
         sent.prev = x;
         last.next = x;
-        N++;
+        size++;
         modCount++;
     }
 
-    public ListIterator<Item> iterator()  { return new DoubleLinkedListIterator(); }
+    public ListIterator<E> iterator()  { return new DoubleLinkedListIterator(); }
 
     // assumes no calls to DoubleLinkedList.add() during iteration
-    private class DoubleLinkedListIterator implements ListIterator<Item> {
+    private class DoubleLinkedListIterator implements ListIterator<E> {
         private Node current      = sent.next;  // the node that is returned by next()
         private Node lastAccessed = null;      // the last node to be returned by prev() or next()
         // reset to null upon intervening remove() or add()
         private int index = 0;
         int expectedModCount = modCount;
 
-        public boolean hasNext()      { return index < N;}
+        public boolean hasNext()      { return index < size;}
         public boolean hasPrevious()  { return index > 0; }
-        public int previousIndex()    { return (index > 0)?index - 1:N-1; }
+        public int previousIndex()    { return (index > 0)?index - 1:size-1; }
         public int nextIndex()        { return index;     }
 
         final void checkForComodification() { //Concurrent Modification check
@@ -60,36 +60,36 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
                 throw new ConcurrentModificationException();
         }
 
-        public Item next() {
+        public E next() {
             checkForComodification();
-            if ((index==N)||(lastAccessed==current)){ index=0; current=sent.next; }
-            Item item = current.item;
+            if ((index==size)||(lastAccessed==current)){ index=0; current=sent.next; }
+            E e = current.e;
             lastAccessed = current;
-            current = (index<N-1)? current.next:sent.next;
+            current = (index<size-1)? current.next:sent.next;
             index++;
-            return item;
+            return e;
         }
 
-        public Item previous() {
+        public E previous() {
             checkForComodification();
-            if (index==N){current=sent;}
+            if (index==size){current=sent;}
             if (hasPrevious()){
                 current = current.prev;
                 index--;
             }else {
                 current = sent.prev;
-                index = N-1;
+                index = size-1;
             }
             lastAccessed = current;
-            return current.item;
+            return current.e;
         }
 
-        // replace the item of the element that was last accessed by next() or previous()
+        // replace the e of the element that was last accessed by next() or previous()
         // condition: no calls to remove() or add() after last call to next() or previous()
-        public void set(Item item) {
+        public void set(E e) {
             checkForComodification();
             if (lastAccessed == null) throw new IllegalStateException();
-            lastAccessed.item = item;
+            lastAccessed.e = e;
         }
 
         // remove the element that was last accessed by next() or previous()
@@ -101,7 +101,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
             Node y = lastAccessed.next;
             x.next = y;
             y.prev = x;
-            N--;
+            size--;
             if (current == lastAccessed)
                 current = y;
             else
@@ -111,16 +111,16 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         }
 
         // add element to list 
-        public void add(Item item) {
+        public void add(E e) {
             Node first = current.prev;
             Node node = new Node();
             Node last = current;
-            node.item = item;
+            node.e = e;
             first.next = node;
             node.next = last;
             last.prev = node;
             node.prev = first;
-            N++;
+            size++;
             index++;
             lastAccessed = null;
             expectedModCount=++modCount;
@@ -132,10 +132,10 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
 
 
     //get by index
-    public Item get(int index){
-        if (!((index>=0)&&(index<N))) throw new NoSuchElementException();
-        ListIterator <Item> listIterator= iterator();
-        if (index<=(N/2)){
+    public E get(int index){
+        if (!((index>=0)&&(index<size))) throw new NoSuchElementException();
+        ListIterator <E> listIterator= iterator();
+        if (index<=(size/2)){
             while (listIterator.nextIndex()<index){
                 listIterator.next();
             }
@@ -151,9 +151,9 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
 
     //remove by index
     public void remove(int index){
-        if (!((index>=0)&&(index<N))) throw new NoSuchElementException();
-        ListIterator <Item> listIterator= iterator();
-        if (index<=(N/2)){
+        if (!((index>=0)&&(index<size))) throw new NoSuchElementException();
+        ListIterator <E> listIterator= iterator();
+        if (index<=(size/2)){
             while (listIterator.nextIndex()<=index){
                 listIterator.next();
             }
@@ -167,13 +167,13 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
 
 
     //add by index
-    public void add(int index, Item item){
-        if (!((index>=0)&&(index<=N))) throw new NoSuchElementException();
-        if (index==N){
-            add(item);
+    public void add(int index, E e){
+        if (!((index>=0)&&(index<=size))) throw new NoSuchElementException();
+        if (index==size){
+            add(e);
         }else {
-            ListIterator <Item> listIterator= iterator();
-            if (index<=(N/2)){
+            ListIterator <E> listIterator= iterator();
+            if (index<=(size/2)){
                 while (listIterator.nextIndex()<=index){
                     listIterator.next();
                 }
@@ -182,7 +182,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
                     listIterator.previous();
                 }
             }
-            listIterator.add(item);
+            listIterator.add(e);
         }
     }
 
@@ -190,32 +190,32 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
     //toString implementation
     public String toString() {
         StringBuilder s = new StringBuilder();
-        for (Item item : this)
-            s.append(item + " ");
+        for (E e : this)
+            s.append(e + " ");
         return s.toString();
     }
 
-    public ArrayList<Item> toArray(){
-        ArrayList<Item> array=new ArrayList<Item>();
-        for (Item item : this)
-            array.add(item);
+    public ArrayList<E> toArray(){
+        ArrayList<E> array=new ArrayList<E>();
+        for (E e : this)
+            array.add(e);
         return array;
     }
 
     //quick sort implementation
     public  void sort() {
-        ArrayList<Item> array = toArray();
+        ArrayList<E> array = toArray();
         int startIndex = 0;
         int endIndex = array.size() - 1;
         doSort(startIndex, endIndex,array);
-        ListIterator <Item> listIterator= iterator();
-        for (Item item : array){
+        ListIterator <E> listIterator= iterator();
+        for (E e : array){
             listIterator.next();
-            listIterator.set(item);
+            listIterator.set(e);
         }
     }
 
-    private  void doSort(int start, int end, ArrayList<Item> array ) {
+    private  void doSort(int start, int end, ArrayList<E> array ) {
         if (start >= end)
             return;
         int i = start, j = end;
@@ -228,7 +228,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
                 j--;
             }
             if (i < j) {
-                Item temp = array.get(i);
+                E temp = array.get(i);
                 array.set(i, array.get(j));
                 array.set(j, temp);
                 if (i == cur)
@@ -241,134 +241,14 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         doSort(cur+1, end, array);
     }
 
-    public <T extends Comparable<T>> DoubleLinkedList<T> map(AbstractFunction<Item,T> function){
+    public <T extends Comparable<T>> DoubleLinkedList<T> map(AbstractFunction<E,T> function){
         DoubleLinkedList<T> transformedList = new DoubleLinkedList<>();
-        for(Item item:this){
-            transformedList.add(function.apply(item));
+        for(E e:this){
+            transformedList.add(function.apply(e));
         }
         return transformedList;
     }
 
 
-    // a test client
-    public static void main(String[] args) {
-        int N  = 10;
 
-        // add elements 1, ..., N
-        System.out.println(N + " random integers between 0 and 99");
-        DoubleLinkedList<Integer> list = new DoubleLinkedList<Integer>();
-        Random generator = new Random();
-        for (int i = 0; i < N; i++)
-            list.add(generator.nextInt(100));
-        System.out.println(list);
-        System.out.println();
-
-        ListIterator<Integer> iterator = list.iterator();
-
-        // go forwards with next() and set()
-        System.out.println("add 1 to each element via next() and set()");
-        while (iterator.hasNext()) {
-            int x = iterator.next();
-            iterator.set(x + 1);
-        }
-        System.out.println(list);
-        System.out.println();
-
-        // go backwards with previous() and set()
-        System.out.println("multiply each element by 3 via previous() and set()");
-        while (iterator.hasPrevious()) {
-            int x = iterator.previous();
-            iterator.set(x + x + x);
-        }
-        System.out.println(list);
-        System.out.println();
-
-
-        // remove all elements that are multiples of 4 via next() and remove()
-        System.out.println("remove elements that are a multiple of 4 via next() and remove()");
-        while (iterator.hasNext()) {
-            int x = iterator.next();
-            if (x % 4 == 0) iterator.remove();
-        }
-        System.out.println(list);
-        System.out.println();
-
-
-        // remove all even elements via previous() and remove()
-        System.out.println("remove elements that are even via previous() and remove()");
-        while (iterator.hasPrevious()) {
-            int x = iterator.previous();
-            if (x % 2 == 0) iterator.remove();
-        }
-        System.out.println(list);
-        System.out.println();
-
-
-        // add elements via next() and add()
-        System.out.println("add elements via next() and add()");
-        while (iterator.hasNext()) {
-            int x = iterator.next();
-            iterator.add(x + 1);
-        }
-        System.out.println(list);
-        System.out.println();
-
-        // add elements via previous() and add()
-        System.out.println("add elements via previous() and add()");
-        while (iterator.hasPrevious()) {
-            int x = iterator.previous();
-            iterator.add(x * 10);
-            iterator.previous();
-        }
-        System.out.println(list);
-        System.out.println();
-        System.out.println("previous() on first node returns last");
-        System.out.println(iterator.previous());
-        System.out.println();
-        System.out.println("next() on last node returns first");
-        System.out.println(iterator.next());
-        System.out.println();
-        System.out.println("print size");
-        System.out.println(list.size());
-        System.out.println();
-        System.out.println("print element[size/2]");
-        System.out.println(list.get(list.size()/2));
-        System.out.println();
-        System.out.println("print element[size/2+1]");
-        System.out.println(list.get(list.size()/2+1));
-        System.out.println();
-        System.out.println("remove element[size/2]");
-        list.remove(list.size() / 2);
-        System.out.println(list);
-        System.out.println();
-        System.out.println("add element to position [size/2]");
-        list.add(list.size() / 2, list.size());
-        System.out.println(list);
-        System.out.println();
-        System.out.println("remove element[size/2+1]");
-        list.remove(list.size() / 2+1);
-        System.out.println(list);
-        System.out.println();
-        System.out.println("add element to position [size/2+1]");
-        list.add(list.size() / 2+1,list.size()*100);
-        System.out.println(list);
-        System.out.println();
-        System.out.println("sort implements quick sort (also toArray() method)");
-        list.sort();
-        System.out.println(list);
-        System.out.println();
-        System.out.println("map implementation, returns some hash codes");
-        DoubleLinkedList<String> newlist = list.map(new TestFunction());
-        System.out.println(newlist);
-        System.out.println();
-        System.out.println("test for concurency");
-        try {
-            for (int x: list){
-                list.add(0);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-    }
 }
