@@ -3,15 +3,13 @@ package Lab_3;
 /**
  * Created by Aphex on 07.05.2016.
  */
-import java.util.ArrayList;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-import java.util.Random;
+import java.io.PrintWriter;
+import java.util.*;
 
 public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterable<Item> {
     private int N;        // number of elements on list
     private Node sent;     // sentinel node
-
+    private int modCount = 0; //modCount for comodification checks
 
     public DoubleLinkedList() {
         sent  = new Node();
@@ -39,6 +37,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         sent.prev = x;
         last.next = x;
         N++;
+        modCount++;
     }
 
     public ListIterator<Item> iterator()  { return new DoubleLinkedListIterator(); }
@@ -49,13 +48,20 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         private Node lastAccessed = null;      // the last node to be returned by prev() or next()
         // reset to null upon intervening remove() or add()
         private int index = 0;
+        int expectedModCount = modCount;
 
         public boolean hasNext()      { return index < N;}
         public boolean hasPrevious()  { return index > 0; }
         public int previousIndex()    { return (index > 0)?index - 1:N-1; }
         public int nextIndex()        { return index;     }
 
+        final void checkForComodification() { //Concurrent Modification check
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+        }
+
         public Item next() {
+            checkForComodification();
             if ((index==N)||(lastAccessed==current)){ index=0; current=sent.next; }
             Item item = current.item;
             lastAccessed = current;
@@ -65,6 +71,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         }
 
         public Item previous() {
+            checkForComodification();
             if (index==N){current=sent;}
             if (hasPrevious()){
                 current = current.prev;
@@ -80,6 +87,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         // replace the item of the element that was last accessed by next() or previous()
         // condition: no calls to remove() or add() after last call to next() or previous()
         public void set(Item item) {
+            checkForComodification();
             if (lastAccessed == null) throw new IllegalStateException();
             lastAccessed.item = item;
         }
@@ -87,6 +95,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         // remove the element that was last accessed by next() or previous()
         // condition: no calls to remove() or add() after last call to next() or previous()
         public void remove() {
+            checkForComodification();
             if (lastAccessed == null) throw new IllegalStateException();
             Node x = lastAccessed.prev;
             Node y = lastAccessed.next;
@@ -98,6 +107,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
             else
                 index--;
             lastAccessed = null;
+            expectedModCount=++modCount;
         }
 
         // add element to list 
@@ -113,6 +123,7 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
             N++;
             index++;
             lastAccessed = null;
+            expectedModCount=++modCount;
         }
 
     }
@@ -349,6 +360,15 @@ public class DoubleLinkedList<Item extends  Comparable<Item>> implements Iterabl
         System.out.println("map implementation, returns some hash codes");
         DoubleLinkedList<String> newlist = list.map(new TestFunction());
         System.out.println(newlist);
+        System.out.println();
+        System.out.println("test for concurency");
+        try {
+            for (int x: list){
+                list.add(0);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 }
